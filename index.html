@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation Message Email Generator</title>
+    <link rel="icon" href="NDS Logo Transparent.png" type="image/png">
+    <link rel="apple-touch-icon" sizes="180x180" href="NDS Logo Transparent.png">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0850d4;
+            --primary-dark: #0639a0;
+            --primary-light: #4a7cff;
+            --glass-white: rgba(255, 255, 255, 0.85);
+            --text-dark: #333;
+            --text-light: #f8f9fa;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --secondary-color: #6c757d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: var(--text-dark);
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #e6f0ff 0%, #c9dfff 100%);
+            opacity: 1;
+            transition: all 0.5s ease;
+        }
+
+        body.fade-out {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        #background-video {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            z-index: -1;
+            filter: brightness(0.7);
+            transition: all 0.5s ease;
+        }
+
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 70px;
+        }
+
+        .custom-container {
+            max-width: 500px;
+            width: 100%;
+            animation: fadeInUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .custom-label {
+            background: var(--glass-white);
+            backdrop-filter: blur(12px);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .custom-label:hover {
+            transform: translateY(-5px) scale(1.005);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        .custom-label h1 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            text-align: center;
+            color: var(--primary-dark);
+            animation: textGlow 2s infinite alternate;
+        }
+
+        .custom-label p {
+            font-size: 16px;
+            margin-bottom: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .form-group label {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .form-control:focus {
+            transform: scale(1.02);
+            box-shadow: 0 0 0 3px rgba(8, 80, 212, 0.2);
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        .btn {
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 10px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform: translateZ(0);
+        }
+
+        .btn::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.2);
+            transform: translateX(-100%);
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .btn:hover::after {
+            transform: translateX(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(8, 80, 212, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(8, 80, 212, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #5cb85c 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #868e96 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(108, 117, 125, 0.4);
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        #emailResult {
+            display: none;
+            padding: 25px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            margin-top: 30px;
+            border-left: 4px solid var(--primary-color);
+            animation: slideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #emailResult h2 {
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            text-align: center;
+            animation: textGlow 2s infinite alternate;
+        }
+
+        #emailContent {
+            white-space: pre-line;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .center-image {
+            text-align: center;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        .center-image img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            transition: all 0.5s ease;
+        }
+
+        .center-image img:hover {
+            transform: rotate(15deg) scale(1.1);
+        }
+
+        footer {
+            background: var(--primary-dark);
+            color: var(--text-light);
+            padding: 15px 0;
+            text-align: center;
+            width: 100%;
+            position: fixed;
+            bottom: 0;
+            transition: all 0.5s ease;
+        }
+
+        /* Keyframe Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes textGlow {
+            from { text-shadow: 0 0 5px rgba(8, 80, 212, 0.3); }
+            to { text-shadow: 0 0 10px rgba(8, 80, 212, 0.5); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 576px) {
+            .custom-label {
+                padding: 20px;
+            }
+            
+            .custom-label h1 {
+                font-size: 24px;
+            }
+            
+            .center-image img {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .btn {
+                padding: 12px 15px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <video autoplay muted loop id="background-video">
+        <source src="background.mp4" type="video/mp4">
+    </video>
+
+    <div class="main-container">
+        <div class="custom-container">
+            <div class="custom-label">
+                <div class="center-image">
+                    <img src="NDS Logo Transparent.png" alt="NDS Logo">
+                </div>
+                <h1>Order Confirmation</h1>
+                <p>Generate personalized email messages for your customers</p>
+
+                <form id="debitForm">
+                    <div class="form-group">
+                        <label for="customerName">Customer Name</label>
+                        <input type="text" class="form-control" id="customerName" placeholder="Enter customer's name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="soapName">Product Name</label>
+                        <input type="text" class="form-control" id="soapName" placeholder="Enter product name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Price (₹)</label>
+                        <input type="number" class="form-control" id="price" placeholder="Enter product price" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-envelope"></i> Generate Email
+                    </button>
+                    <div class="error-message" id="warning">Please fill all details</div>
+                </form>
+
+                <div id="emailResult">
+                    <h2>Email Preview</h2>
+                    <p id="emailContent"></p>
+                    <button id="copyButton" class="btn btn-success btn-block">
+                        <i class="fas fa-copy"></i> Copy to Clipboard
+                    </button>
+                    <button id="copySubjectButton" class="btn btn-secondary btn-block">
+                        <i class="fas fa-copy"></i> Copy Subject
+                    </button>
+                    <button id="refreshButton" class="btn btn-primary btn-block">
+                        <i class="fas fa-sync-alt"></i> Refresh Page
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        Made With ❤️ By NDS Payments Corp.
+    </footer>
+
+    <script>
+        // Generate random invoice number
+        function generateInvoiceNumber() {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let invoiceNumber = '';
+            for (let i = 0; i < 8; i++) {
+                invoiceNumber += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return invoiceNumber;
+        }
+
+        // Form submission handler
+        document.getElementById("debitForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const customerName = document.getElementById("customerName").value;
+            const soapName = document.getElementById("soapName").value;
+            const price = document.getElementById("price").value;
+
+            // Validate form
+            if (!customerName || !soapName || !price) {
+                document.getElementById("warning").style.display = "block";
+                return;
+            }
+
+            document.getElementById("warning").style.display = "none";
+
+            // Generate email content
+            const invoiceNumber = generateInvoiceNumber();
+            const date = new Date().toLocaleDateString('en-IN', { 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric' 
+            });
+            const subject = `Subject: Thank You for Your Purchase`;
+
+            const emailContent = `${subject}\n\nHi ${customerName},\n\nWe wanted to take a moment to express our gratitude for your recent purchase of ${soapName}! We truly appreciate your support.\n\nYour invoice number for this transaction is: ${invoiceNumber}.\n\nThe purchase was made on ${date}.\n\nThe total amount for your purchase is ₹${price}.\n\nIf you have any questions or need assistance, please don't hesitate to reach out. We're here to help.\n\nThank you once again for choosing us. We look forward to serving you again soon.\n\nBest regards,\nNDS Team 🌟`;
+
+            // Display results with animation
+            document.getElementById("emailContent").innerText = emailContent;
+            document.getElementById("emailResult").style.display = "block";
+            document.getElementById("emailResult").scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'nearest'
+            });
+        });
+
+        // Copy full email to clipboard
+        document.getElementById("copyButton").addEventListener("click", function() {
+            const emailContent = document.getElementById("emailContent").innerText;
+            const button = this;
+            
+            // Add animation class
+            button.classList.add('btn-loading');
+            
+            navigator.clipboard.writeText(emailContent).then(() => {
+                // Success animation
+                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                    button.innerHTML = '<i class="fas fa-copy"></i> Copy to Clipboard';
+                    button.classList.remove('btn-loading');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                button.innerHTML = '<i class="fas fa-times"></i> Error';
+                setTimeout(() => {
+                    button.innerHTML = '<i class="fas fa-copy"></i> Copy to Clipboard';
+                    button.classList.remove('btn-loading');
+                }, 2000);
+            });
+        });
+
+        // Copy just the subject to clipboard
+        document.getElementById("copySubjectButton").addEventListener("click", function() {
+            const button = this;
+            
+            // Add animation class
+            button.classList.add('btn-loading');
+            
+            navigator.clipboard.writeText("Subject: Thank You for Your Purchase").then(() => {
+                // Success animation
+                button.innerHTML = '<i class="fas fa-check"></i> Subject Copied!';
+                setTimeout(() => {
+                    button.innerHTML = '<i class="fas fa-copy"></i> Copy Subject';
+                    button.classList.remove('btn-loading');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy subject: ', err);
+                button.innerHTML = '<i class="fas fa-times"></i> Error';
+                setTimeout(() => {
+                    button.innerHTML = '<i class="fas fa-copy"></i> Copy Subject';
+                    button.classList.remove('btn-loading');
+                }, 2000);
+            });
+        });
+
+        // Refresh page with animation
+        document.getElementById("refreshButton").addEventListener("click", function() {
+            const button = this;
+            
+            // Add loading animation
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+            
+            // Page transition effect
+            document.body.classList.add("fade-out");
+            
+            // Delay reload to allow animation to complete
+            setTimeout(() => {
+                location.reload();
+            }, 500);
+        });
+
+        // Input field animations
+        document.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.style.transform = 'scale(1.02)';
+                this.style.boxShadow = '0 0 0 3px rgba(8, 80, 212, 0.2)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.style.transform = 'scale(1)';
+                this.style.boxShadow = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
